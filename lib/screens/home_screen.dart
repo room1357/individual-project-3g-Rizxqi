@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'expense_list_screen.dart';
+import 'advanced_list_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 
@@ -48,7 +49,20 @@ class HomeScreen extends StatelessWidget {
                 mainAxisSpacing: 16,
                 children: [
                   _buildDashboardCard(
-                    'Pengeluaran',
+                    'Pengeluaran Advanced',
+                    Icons.attach_money,
+                    Colors.green,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AdvancedExpenseListScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDashboardCard(
+                    'Pengeluaran Biasa',
                     Icons.attach_money,
                     Colors.green,
                     () {
