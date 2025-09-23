@@ -1,16 +1,35 @@
-# pemrograman_mobile
+# 📱 Pemrograman Mobile - Flutter Project
 
-A new Flutter project.
+Selamat datang di repository **Pemrograman Mobile**! 🚀  
+Project ini dikembangkan menggunakan **Flutter** sebagai framework utama untuk membangun aplikasi mobile yang modern, cepat, dan multiplatform.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🌟 Fitur Utama
+- Struktur project Flutter standar.
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 🛠️ Teknologi
+- [Flutter](https://flutter.dev/)  
+- [Dart](https://dart.dev/)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+## 🚀 Getting Started
+
+Untuk memulai project ini di lokal komputer kamu:
+
+```bash
+# Clone repository
+git clone https://github.com/username/pemrograman_mobile.git
+
+# Masuk ke folder project
+cd pemrograman_mobile
+
+# Jalankan project
+flutter run
+
+# 📱 Pemrograman Mobile - Flutter Project
+by **Rizqi Dewanto**
+
