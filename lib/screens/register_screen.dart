@@ -24,7 +24,7 @@ class RegisterScreen extends StatelessWidget {
                 // Navigasi ke HomeScreen dengan pushReplacement
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  MaterialPageRoute(builder: (context) =>  HomeScreen()),
                 );
               },
               child: Text('DAFTAR'),
