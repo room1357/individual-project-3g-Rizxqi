@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import '../models/expense_manager.dart';
+import 'add_expenses_screen.dart';
 
 class AdvancedExpenseListScreen extends StatefulWidget {
   const AdvancedExpenseListScreen({super.key});
 
   @override
-  _AdvancedExpenseListScreenState createState() =>
-      _AdvancedExpenseListScreenState();
+  AdvancedExpenseListScreenState createState() =>
+      AdvancedExpenseListScreenState();
 }
 
-class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
+class AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
   List<Expense> expenses = ExpenseManager.expenses; // ✅ ambil dari manager
   List<Expense> filteredExpenses = [];
   String selectedCategory = 'Semua';
@@ -142,6 +143,24 @@ class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
                     ),
           ),
         ],
+      ),
+
+      // ➕ Tombol tambah pengeluaran
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final newExpense = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
+          );
+
+          if (newExpense != null && newExpense is Expense) {
+            setState(() {
+              expenses.add(newExpense);
+              _filterExpenses();
+            });
+          }
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
