@@ -150,7 +150,7 @@ class AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
         onPressed: () async {
           final newExpense = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
+            MaterialPageRoute(builder: (_) => AddExpenseScreen()),
           );
 
           if (newExpense != null && newExpense is Expense) {

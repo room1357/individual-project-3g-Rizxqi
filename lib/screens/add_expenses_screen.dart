@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import '../models/expense.dart';
+import '../services/expense_service.dart';
 
-class AddExpenseScreen extends StatefulWidget {
-  const AddExpenseScreen({super.key});
+class AddExpenseScreen extends StatelessWidget {
+  AddExpenseScreen({super.key});
 
-  @override
-  State<AddExpenseScreen> createState() => _AddExpenseScreenState();
-}
-
-class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
-  String selectedCategory = 'Makanan'; // default category
+  final ValueNotifier<String> selectedCategory = ValueNotifier<String>(
+    'Makanan',
+  );
 
-  final List<String> categories = [
+  final List<String> categories = const [
     'Makanan',
     'Transportasi',
     'Utilitas',
@@ -29,55 +27,71 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       appBar: AppBar(
         title: const Text("Tambah Pengeluaran"),
         backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Judul
               TextField(
                 controller: titleController,
                 decoration: const InputDecoration(
-                  labelText: "Judul",
+                  labelText: "Judul Pengeluaran",
+                  hintText: "Contoh: Makan siang",
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.title),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
 
               // Jumlah
               TextField(
                 controller: amountController,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(
                   labelText: "Jumlah (Rp)",
+                  hintText: "Contoh: 25000",
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.attach_money),
+                  prefixText: "Rp ",
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
 
-              // Kategori dropdown
-              DropdownButtonFormField<String>(
-                value: selectedCategory,
-                decoration: const InputDecoration(
-                  labelText: "Kategori",
-                  border: OutlineInputBorder(),
-                ),
-                items:
-                    categories.map((category) {
-                      return DropdownMenuItem(
-                        value: category,
-                        child: Text(category),
-                      );
-                    }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedCategory = value!;
-                  });
+              // Kategori
+              ValueListenableBuilder<String>(
+                valueListenable: selectedCategory,
+                builder: (context, value, _) {
+                  return DropdownButtonFormField<String>(
+                    value: value,
+                    decoration: const InputDecoration(
+                      labelText: "Kategori",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.category),
+                    ),
+                    items:
+                        categories
+                            .map(
+                              (category) => DropdownMenuItem(
+                                value: category,
+                                child: Text(category),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        selectedCategory.value = newValue;
+                      }
+                    },
+                  );
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
 
               // Deskripsi
               TextField(
@@ -85,47 +99,52 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 maxLines: 3,
                 decoration: const InputDecoration(
                   labelText: "Deskripsi",
+                  hintText: "Contoh: Nasi goreng + es teh",
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.description),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Tombol simpan
-              Center(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 40,
-                      vertical: 12,
-                    ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  onPressed: () {
-                    if (titleController.text.isEmpty ||
-                        amountController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Judul dan Jumlah wajib diisi!"),
-                        ),
-                      );
-                      return;
-                    }
-
-                    final expense = Expense(
-                      id: DateTime.now().toString(),
-                      title: titleController.text,
-                      amount: double.parse(amountController.text),
-                      category: selectedCategory,
-                      date: DateTime.now(),
-                      description: descriptionController.text,
+                ),
+                onPressed: () {
+                  if (titleController.text.isEmpty ||
+                      amountController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Judul dan Jumlah wajib diisi!"),
+                      ),
                     );
+                    return;
+                  }
 
-                    Navigator.pop(context, expense); // kirim balik ke list
-                  },
-                  child: const Text(
-                    "Simpan",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  final expense = Expense(
+                    id: DateTime.now().toString(),
+                    title: titleController.text,
+                    amount: double.tryParse(amountController.text) ?? 0.0,
+                    category: selectedCategory.value,
+                    date: DateTime.now(),
+                    description: descriptionController.text,
+                  );
+
+                  // 👉 Simpan ke service
+                  ExpenseService.addExpense(expense);
+
+                  // Balik ke layar sebelumnya
+                  Navigator.pop(context, expense);
+                },
+                child: const Text(
+                  "Tambah Pengeluaran",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ],

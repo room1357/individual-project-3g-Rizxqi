@@ -81,7 +81,7 @@ class LoginScreen extends StatelessWidget {
                 TextButton(
                   onPressed: () {
                     // Navigasi ke RegisterScreen dengan push
-                    Navigator.push(
+                  Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const RegisterScreen()),
                     );
