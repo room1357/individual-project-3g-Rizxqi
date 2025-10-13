@@ -1,0 +1,54 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Kuliah\\Sms5\\mobile\\prak_navigation\\individual-project-3g-Rizxqi\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Kuliah\\Sms5\\mobile\\prak_navigation\\individual-project-3g-Rizxqi\\lib\\screens\\advanced_list_screen.dart||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\screens\\advanced_list_screen.dart||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Kuliah\\Sms5\\mobile\\prak_navigation\\individual-project-3g-Rizxqi\\lib\\screens\\category_screen.dart||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\screens\\category_screen.dart||{8B382828-6202-11D1-8870-0000F87579D2}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "category_screen.dart",
+              "DocumentMoniker": "D:\\Kuliah\\Sms5\\mobile\\prak_navigation\\individual-project-3g-Rizxqi\\lib\\screens\\category_screen.dart",
+              "RelativeDocumentMoniker": "lib\\screens\\category_screen.dart",
+              "ToolTip": "D:\\Kuliah\\Sms5\\mobile\\prak_navigation\\individual-project-3g-Rizxqi\\lib\\screens\\category_screen.dart",
+              "RelativeToolTip": "lib\\screens\\category_screen.dart",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-10-07T09:16:06.253Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "advanced_list_screen.dart",
+              "DocumentMoniker": "D:\\Kuliah\\Sms5\\mobile\\prak_navigation\\individual-project-3g-Rizxqi\\lib\\screens\\advanced_list_screen.dart",
+              "RelativeDocumentMoniker": "lib\\screens\\advanced_list_screen.dart",
+              "ToolTip": "D:\\Kuliah\\Sms5\\mobile\\prak_navigation\\individual-project-3g-Rizxqi\\lib\\screens\\advanced_list_screen.dart",
+              "RelativeToolTip": "lib\\screens\\advanced_list_screen.dart",
+              "ViewState": "AgIAAOoAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-10-07T09:16:03.71Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,154 +1,214 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../services/expense_service.dart';
 
-class AddExpenseScreen extends StatelessWidget {
-  AddExpenseScreen({super.key});
+class AddExpenseScreen extends StatefulWidget {
+  const AddExpenseScreen({super.key});
 
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController amountController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
+  @override
+  State<AddExpenseScreen> createState() => _AddExpenseScreenState();
+}
 
-  final ValueNotifier<String> selectedCategory = ValueNotifier<String>(
-    'Makanan',
-  );
+class _AddExpenseScreenState extends State<AddExpenseScreen> {
+  final titleController = TextEditingController();
+  final amountController = TextEditingController();
+  final noteController = TextEditingController();
+  String category = 'Makanan';
+  DateTime selectedDate = DateTime.now();
 
-  final List<String> categories = const [
-    'Makanan',
-    'Transportasi',
-    'Utilitas',
-    'Hiburan',
-    'Pendidikan',
-  ];
+  final expenseService = ExpenseService(); // Singleton instance
+
+  Future<void> _save() async {
+    final amt =
+        double.tryParse(amountController.text.replaceAll(',', '')) ?? 0.0;
+
+    final newExpense = Expense(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: titleController.text.isEmpty ? 'Untitled' : titleController.text,
+      amount: amt,
+      category: category,
+      date: selectedDate,
+      description: noteController.text,
+    );
+
+    expenseService.addExpense(newExpense);
+
+    if (!mounted) return; // ✅ pastikan widget masih aktif
+    Navigator.pop(context, newExpense);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ');
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F6FA),
       appBar: AppBar(
-        title: const Text("Tambah Pengeluaran"),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.black87,
+        title: Text('Add Expenses', style: GoogleFonts.poppins()),
+        actions: [
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close),
+          ),
+        ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Judul
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: "Judul Pengeluaran",
-                  hintText: "Contoh: Makan siang",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.title),
-                ),
-              ),
-              const SizedBox(height: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            // Display amount dynamically
+            ValueListenableBuilder(
+              valueListenable: amountController,
+              builder: (context, value, _) {
+                final amount =
+                    double.tryParse(
+                      amountController.text.replaceAll(',', ''),
+                    ) ??
+                    0.0;
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        currency.format(amount),
+                        style: GoogleFonts.poppins(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Tap to enter amount',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
 
-              // Jumlah
-              TextField(
-                controller: amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(
-                  labelText: "Jumlah (Rp)",
-                  hintText: "Contoh: 25000",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.attach_money),
-                  prefixText: "Rp ",
-                ),
+            // Input card
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
               ),
-              const SizedBox(height: 16),
-
-              // Kategori
-              ValueListenableBuilder<String>(
-                valueListenable: selectedCategory,
-                builder: (context, value, _) {
-                  return DropdownButtonFormField<String>(
-                    value: value,
+              child: Column(
+                children: [
+                  TextField(
+                    controller: amountController,
+                    keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: "Kategori",
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.category),
+                      labelText: 'Amount',
+                      prefixText: 'Rp ',
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: category,
                     items:
-                        categories
+                        [
+                              'Makanan',
+                              'Transportasi',
+                              'Utilitas',
+                              'Hiburan',
+                              'Pendidikan',
+                            ]
                             .map(
-                              (category) => DropdownMenuItem(
-                                value: category,
-                                child: Text(category),
-                              ),
+                              (c) => DropdownMenuItem(value: c, child: Text(c)),
                             )
                             .toList(),
-                    onChanged: (newValue) {
-                      if (newValue != null) {
-                        selectedCategory.value = newValue;
+                    onChanged: (v) => setState(() => category = v ?? category),
+                    decoration: const InputDecoration(labelText: 'Category'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(labelText: 'Title'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: noteController,
+                    decoration: const InputDecoration(labelText: 'Note'),
+                  ),
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime.now().subtract(
+                          const Duration(days: 365 * 3),
+                        ),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null && mounted) {
+                        setState(() => selectedDate = picked);
                       }
                     },
-                  );
-                },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(labelText: 'Date'),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(DateFormat('dd MMM yyyy').format(selectedDate)),
+                          const Icon(Icons.calendar_today),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
+            ),
+            const Spacer(),
 
-              // Deskripsi
-              TextField(
-                controller: descriptionController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: "Deskripsi",
-                  hintText: "Contoh: Nasi goreng + es teh",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.description),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Tombol simpan
-              ElevatedButton(
+            // Save button
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _save,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 6,
+                ),
+                child: Ink(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF7B61FF), Color(0xFFFB7BA2)],
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(14)),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'SAVE',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
                   ),
                 ),
-                onPressed: () {
-                  if (titleController.text.isEmpty ||
-                      amountController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Judul dan Jumlah wajib diisi!"),
-                      ),
-                    );
-                    return;
-                  }
-
-                  final expense = Expense(
-                    id: DateTime.now().toString(),
-                    title: titleController.text,
-                    amount: double.tryParse(amountController.text) ?? 0.0,
-                    category: selectedCategory.value,
-                    date: DateTime.now(),
-                    description: descriptionController.text,
-                  );
-
-                  // 👉 Simpan ke service
-                  ExpenseService.addExpense(expense);
-
-                  // Balik ke layar sebelumnya
-                  Navigator.pop(context, expense);
-                },
-                child: const Text(
-                  "Tambah Pengeluaran",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 18),
+          ],
         ),
       ),
     );

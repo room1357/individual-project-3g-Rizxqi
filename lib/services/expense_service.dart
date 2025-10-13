@@ -1,106 +1,91 @@
 import '../models/expense.dart';
+import '../utils/date_utils.dart';
 
 class ExpenseService {
-  static final List<Expense> _expenses = [
+  // ✅ Step 1: Buat instance tunggal (Singleton)
+  static final ExpenseService _instance = ExpenseService._internal();
+
+  // ✅ Step 2: Factory constructor agar bisa dipanggil dengan `ExpenseService()`
+  factory ExpenseService() {
+    return _instance;
+  }
+
+  // ✅ Step 3: Private constructor internal
+  ExpenseService._internal();
+
+  // ✅ Data sementara (dummy)
+  final List<Expense> _expenses = [
     Expense(
       id: '1',
       title: 'Makan Siang',
       description: 'Nasi goreng + es teh',
       amount: 25000,
       category: 'Makanan',
-      date: DateTime(2025, 9, 15),
+      date: DateTime(2025, 10, 1),
     ),
     Expense(
       id: '2',
-      title: 'Bensin',
-      description: 'Isi Pertalite 2 liter',
-      amount: 20000,
+      title: 'Transport',
+      description: 'Grab ke kampus',
+      amount: 15000,
       category: 'Transportasi',
-      date: DateTime(2025, 9, 14),
+      date: DateTime(2025, 10, 8),
     ),
     Expense(
       id: '3',
-      title: 'Netflix',
-      description: 'Langganan bulanan',
+      title: 'Langganan Spotify',
+      description: '',
       amount: 54000,
       category: 'Hiburan',
-      date: DateTime(2025, 9, 10),
-    ),
-    Expense(
-      id: '4',
-      title: 'Listrik',
-      description: 'Token PLN 100rb',
-      amount: 100000,
-      category: 'Utilitas',
-      date: DateTime(2025, 9, 5),
-    ),
-    Expense(
-      id: '5',
-      title: 'Buku Kuliah',
-      description: 'Pemrograman Mobile',
-      amount: 75000,
-      category: 'Pendidikan',
-      date: DateTime(2025, 9, 1),
+      date: DateTime(2025, 10, 18),
     ),
   ];
 
-  // Ambil semua
-  static List<Expense> getAll() => List.unmodifiable(_expenses);
+  // 🔹 Getter semua data
+  List<Expense> getAllExpenses() => List.unmodifiable(_expenses);
 
-  // Tambah
-  static void addExpense(Expense expense) {
+  // 🔹 Tambah pengeluaran baru
+  void addExpense(Expense expense) {
     _expenses.add(expense);
   }
 
-  // Hapus
-  static void deleteExpense(String id) {
+  // 🔹 Hapus pengeluaran berdasarkan ID
+  void deleteExpense(String id) {
     _expenses.removeWhere((e) => e.id == id);
   }
 
-  // Update
-  static void updateExpense(Expense updated) {
+  // 🔹 Update pengeluaran
+  void updateExpense(Expense updated) {
     final index = _expenses.indexWhere((e) => e.id == updated.id);
-    if (index != -1) {
-      _expenses[index] = updated;
+    if (index != -1) _expenses[index] = updated;
+  }
+
+  // 🔹 Total pengeluaran per minggu
+  List<double> getWeeklyTotalsForMonth(int month, int year) {
+    final expenses = _expenses.where(
+      (e) => e.date.month == month && e.date.year == year,
+    );
+
+    final daysInMonth = DateUtilsHelper.getDaysInMonth(year, month);
+    final weekStarts = DateUtilsHelper.getWeekStartDays(year, month);
+    final List<double> weeklyTotals = List.filled(weekStarts.length, 0);
+
+    for (final e in expenses) {
+      final weekIndex = ((e.date.day - 1) ~/ 7);
+      weeklyTotals[weekIndex] += e.amount;
     }
+
+    return weeklyTotals;
   }
 
-  // Statistik
-  static Map<String, double> getTotalByCategory() {
-    final result = <String, double>{};
-    for (var e in _expenses) {
-      result[e.category] = (result[e.category] ?? 0) + e.amount;
-    }
-    return result;
+  // 🔹 Hitung kelipatan Y-axis (100rb terdekat)
+  double getNiceMaxY(double value) {
+    if (value <= 0) return 100000;
+    return ((value / 100000).ceil() * 100000).toDouble();
   }
 
-  static Expense? getHighestExpense() {
-    if (_expenses.isEmpty) return null;
-    return _expenses.reduce((a, b) => a.amount > b.amount ? a : b);
-  }
-
-  static List<Expense> getByMonth(int month, int year) {
-    return _expenses
-        .where((e) => e.date.month == month && e.date.year == year)
-        .toList();
-  }
-
-  static List<Expense> search(String keyword) {
-    final lower = keyword.toLowerCase();
-    return _expenses.where((e) {
-      return e.title.toLowerCase().contains(lower) ||
-          e.description.toLowerCase().contains(lower) ||
-          e.category.toLowerCase().contains(lower);
-    }).toList();
-  }
-
-  static double getAverageDaily() {
-    if (_expenses.isEmpty) return 0;
-    final total = _expenses.fold(0.0, (sum, e) => sum + e.amount);
-    final uniqueDays =
-        _expenses
-            .map((e) => '${e.date.year}-${e.date.month}-${e.date.day}')
-            .toSet();
-    return total / uniqueDays.length;
+  // 🔹 Total semua pengeluaran
+  double getTotalExpenses() {
+    return _expenses.fold(0.0, (sum, e) => sum + e.amount);
   }
 }

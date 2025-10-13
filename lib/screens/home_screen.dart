@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'category_screen.dart';
 import 'statistics_screen.dart';
 import 'login_screen.dart';
 import 'advanced_list_screen.dart';
@@ -56,8 +57,7 @@ class HomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) => const AdvancedExpenseListScreen(),
+                          builder: (context) => const AdvancedListScreen(),
                         ),
                       );
                     },
@@ -65,12 +65,25 @@ class HomeScreen extends StatelessWidget {
                   _buildDashboardCard(
                     'Statistic',
                     Icons.attach_money,
-                    Colors.green,
+                    const Color.fromARGB(255, 0, 204, 255),
                     () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const StatisticsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDashboardCard(
+                    'Category',
+                    Icons.attach_money,
+                    const Color.fromARGB(255, 209, 255, 3),
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CategoryScreen(),
                         ),
                       );
                     },

@@ -1,34 +1,8 @@
 import 'expense.dart';
-import 'expense_manager.dart';
 
 class LoopingExamples {
   // Contoh data dummy
-  static List<Expense> expenses = [
-    Expense(
-      id: '1',
-      title: 'Makan Siang',
-      description: 'Nasi goreng + es teh',
-      amount: 25000,
-      category: 'Makanan',
-      date: DateTime(2025, 9, 15),
-    ),
-    Expense(
-      id: '2',
-      title: 'Bensin',
-      description: 'Isi Pertalite 2 liter',
-      amount: 20000,
-      category: 'Transportasi',
-      date: DateTime(2025, 9, 14),
-    ),
-    Expense(
-      id: '3',
-      title: 'Netflix',
-      description: 'Langganan bulanan',
-      amount: 54000,
-      category: 'Hiburan',
-      date: DateTime(2025, 9, 10),
-    ),
-  ];
+  static List<Expense> expenses = [];
 
   // 1. Menghitung total dengan berbagai cara
   static double calculateTotalTraditional(List<Expense> expenses) {

@@ -1,10 +1,13 @@
+import 'package:intl/intl.dart';
+
 class Expense {
   final String id;
   final String title;
   final double amount;
-  final String category;
+  final String category; // kategori umum (contoh: Makanan, Transport)
   final DateTime date;
-  final String description;
+  final String? description; // nullable agar tidak wajib diisi
+  final String? service; // opsional: kategori service jika ada
 
   Expense({
     required this.id,
@@ -12,14 +15,27 @@ class Expense {
     required this.amount,
     required this.category,
     required this.date,
-    required this.description,
+    this.description,
+    this.service,
   });
 
-  // Getter untuk format tampilan mata uang
-  String get formattedAmount => 'Rp ${amount.toStringAsFixed(0)}';
-  
-  // Getter untuk format tampilan tanggal
+  // ✅ Format angka ke dalam Rupiah
+  String get formattedAmount {
+    final formatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    return formatter.format(amount);
+  }
+
+  // ✅ Format tanggal ke format lokal
   String get formattedDate {
-    return '${date.day}/${date.month}/${date.year}';
+    return DateFormat('dd MMM yyyy', 'id_ID').format(date);
+  }
+
+  // ✅ Ambil kategori final (prioritaskan service jika ada)
+  String get displayCategory {
+    return service ?? category;
   }
 }
