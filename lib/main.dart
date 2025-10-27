@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:pemrograman_mobile/helpers/shared_pref_helper.dart';
 import 'package:pemrograman_mobile/screens/home_screen.dart';
 import 'package:pemrograman_mobile/screens/login_screen.dart';
+import 'package:pemrograman_mobile/services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
-  await SharedPrefHelper.init();
 
-  final pref = SharedPrefHelper();
-  final bool isLoggedIn = pref.isLoggedIn();
+  // 🔹 Pastikan inisialisasi AuthService yang menggunakan SharedPreferences sudah selesai
+  final auth = AuthService.instance;
+  await auth.init();
+
+  // 🔹 Cek apakah user masih login
+  final bool isLoggedIn = await auth.isLoggedIn();
 
   runApp(MyApp(isLoggedIn: isLoggedIn));
 }
@@ -28,7 +31,19 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: isLoggedIn ? const HomeScreen() : const LoginScreen(),
+      home: FutureBuilder(
+        // menambahkan FutureBuilder splash (Plan)
+        future: Future.delayed(const Duration(milliseconds: 500)),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          // menentukan halaman awal sesuai status login
+          return isLoggedIn ? const HomeScreen() : const LoginScreen();
+        },
+      ),
     );
   }
 }
