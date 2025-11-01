@@ -3,7 +3,7 @@ import '../services/auth_service.dart';
 import 'category_screen.dart';
 import 'statistics_screen.dart';
 import 'login_screen.dart';
-import 'advanced_list_screen.dart';
+import 'expense_list_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 
@@ -75,7 +75,7 @@ class HomeScreen extends StatelessWidget {
                     title: 'Pengeluaran',
                     icon: Icons.account_balance_wallet_outlined,
                     color: Colors.green,
-                    onTap: () => _navigate(context, const AdvancedListScreen()),
+                    onTap: () => _navigate(context, const ExpenseListScreen()),
                   ),
                   _buildDashboardCard(
                     context,

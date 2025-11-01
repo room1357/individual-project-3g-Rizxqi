@@ -1,63 +1,61 @@
+import 'package:pemrograman_mobile/utils/date_utils.dart';
+
 import '../models/expense.dart';
-import '../utils/date_utils.dart';
 
 class ExpenseService {
-  // ✅ Step 1: Buat instance tunggal (Singleton)
+  // ✅ Singleton instance
   static final ExpenseService _instance = ExpenseService._internal();
-
-  // ✅ Step 2: Factory constructor agar bisa dipanggil dengan `ExpenseService()`
-  factory ExpenseService() {
-    return _instance;
-  }
-
-  // ✅ Step 3: Private constructor internal
+  factory ExpenseService() => _instance;
   ExpenseService._internal();
 
-  // ✅ Data sementara (dummy)
+  // ✅ FIX: Sesuaikan categoryId dengan CategoryService
   final List<Expense> _expenses = [
     Expense(
       id: '1',
       title: 'Makan Siang',
-      description: 'Nasi goreng + es teh',
       amount: 25000,
-      category: 'Makanan',
-      date: DateTime(2025, 10, 1),
+      date: DateTime.now(),
+      categoryId: '1', // ✅ Sesuaikan dengan ID di CategoryService (Food)
     ),
     Expense(
       id: '2',
-      title: 'Transport',
-      description: 'Grab ke kampus',
+      title: 'Bensin Motor',
       amount: 15000,
-      category: 'Transportasi',
-      date: DateTime(2025, 10, 8),
+      date: DateTime.now(),
+      categoryId: '2', // ✅ Transport
     ),
     Expense(
       id: '3',
-      title: 'Langganan Spotify',
-      description: '',
-      amount: 54000,
-      category: 'Hiburan',
-      date: DateTime(2025, 10, 18),
+      title: 'Nonton Bioskop',
+      amount: 50000,
+      date: DateTime.now().subtract(const Duration(days: 1)),
+      categoryId: '3', // ✅ Entertainment
     ),
   ];
 
-  // 🔹 Getter semua data
+  // ✅ Semua method sama seperti sebelumnya
   List<Expense> getAllExpenses() => List.unmodifiable(_expenses);
 
-  // 🔹 Tambah pengeluaran baru
   void addExpense(Expense expense) {
+    if (_expenses.any((e) => e.id == expense.id)) {
+      throw Exception("Expense dengan ID ${expense.id} sudah ada!");
+    }
     _expenses.add(expense);
   }
 
-  // 🔹 Hapus pengeluaran berdasarkan ID
   void deleteExpense(String id) {
     _expenses.removeWhere((e) => e.id == id);
   }
 
-  // 🔹 Update pengeluaran
-  void updateExpense(Expense updated) {
-    final index = _expenses.indexWhere((e) => e.id == updated.id);
-    if (index != -1) _expenses[index] = updated;
+  void updateExpense(Expense updatedExpense) {
+    final index = _expenses.indexWhere((e) => e.id == updatedExpense.id);
+    if (index != -1) {
+      _expenses[index] = updatedExpense;
+    } else {
+      throw Exception(
+        "Expense dengan ID ${updatedExpense.id} tidak ditemukan!",
+      );
+    }
   }
 
   // 🔹 Total pengeluaran per minggu
@@ -66,7 +64,7 @@ class ExpenseService {
       (e) => e.date.month == month && e.date.year == year,
     );
 
-    final daysInMonth = DateUtilsHelper.getDaysInMonth(year, month);
+    final _ = DateUtilsHelper.getDaysInMonth(year, month);
     final weekStarts = DateUtilsHelper.getWeekStartDays(year, month);
     final List<double> weeklyTotals = List.filled(weekStarts.length, 0);
 
@@ -84,8 +82,25 @@ class ExpenseService {
     return ((value / 100000).ceil() * 100000).toDouble();
   }
 
-  // 🔹 Total semua pengeluaran
+  Expense? getById(String id) {
+    try {
+      return _expenses.firstWhere((e) => e.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
   double getTotalExpenses() {
     return _expenses.fold(0.0, (sum, e) => sum + e.amount);
+  }
+
+  List<Expense> getExpensesByCategory(String categoryId) {
+    return _expenses.where((e) => e.categoryId == categoryId).toList();
+  }
+
+  int get count => _expenses.length;
+
+  void clearAll() {
+    _expenses.clear();
   }
 }

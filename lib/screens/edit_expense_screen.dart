@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../models/expense.dart';
+import '../models/category.dart';
 import '../services/expense_service.dart';
+import '../services/category_service.dart';
 
 class EditExpenseScreen extends StatefulWidget {
   final Expense expense;
@@ -18,16 +21,26 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
   final amountController = TextEditingController();
   final descriptionController = TextEditingController();
 
-  late String selectedCategory;
+  late String selectedCategoryId; // ✅ PAKAI ID, BUKAN NAME
+  late DateTime selectedDate;
+
   final expenseService = ExpenseService();
+  final categoryService = CategoryService();
+  late List<Category> categories;
 
   @override
   void initState() {
     super.initState();
+
+    // ✅ Load categories
+    categories = categoryService.getAll();
+
+    // ✅ Set initial values
     titleController.text = widget.expense.title;
     amountController.text = widget.expense.amount.toString();
     descriptionController.text = widget.expense.description ?? '';
-    selectedCategory = widget.expense.category;
+    selectedCategoryId = widget.expense.categoryId; // ✅ INI HARUS ID
+    selectedDate = widget.expense.date;
   }
 
   @override
@@ -44,12 +57,17 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
         id: widget.expense.id,
         title: titleController.text.trim(),
         amount: double.tryParse(amountController.text) ?? 0,
-        category: selectedCategory,
-        date: widget.expense.date,
-        description: descriptionController.text.trim(),
+        categoryId: selectedCategoryId,
+        date: selectedDate,
+        description:
+            descriptionController.text.trim().isEmpty
+                ? null
+                : descriptionController.text.trim(),
       );
 
       expenseService.updateExpense(updatedExpense);
+
+      if (!mounted) return;
       Navigator.pop(context, updatedExpense);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,15 +99,19 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                   backgroundColor: Colors.redAccent,
                 ),
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Hapus'),
+                child: const Text(
+                  'Hapus',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ],
           ),
     );
 
-    if (confirm == true) {
+    if (confirm == true && mounted) {
       expenseService.deleteExpense(widget.expense.id);
       Navigator.pop(context, 'deleted');
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Pengeluaran telah dihapus'),
@@ -102,18 +124,13 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = [
-      'Makanan',
-      'Transportasi',
-      'Utilitas',
-      'Hiburan',
-      'Pendidikan',
-    ];
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text("Edit Pengeluaran"),
+        title: Text(
+          "Edit Pengeluaran",
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: Colors.white,
@@ -137,11 +154,11 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withOpacity(0.95),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black26.withValues(alpha: 0.1),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -191,24 +208,58 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Kategori
+                  // ✅ Kategori - PAKAI ID!
                   DropdownButtonFormField<String>(
-                    value: selectedCategory,
+                    value: selectedCategoryId, // ✅ ID
                     items:
                         categories
                             .map(
                               (cat) => DropdownMenuItem(
-                                value: cat,
-                                child: Text(cat),
+                                value: cat.id, // ✅ VALUE PAKAI ID
+                                child: Text(cat.name), // Display name
                               ),
                             )
                             .toList(),
-                    onChanged: (val) => setState(() => selectedCategory = val!),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => selectedCategoryId = val);
+                      }
+                    },
                     decoration: InputDecoration(
                       labelText: "Kategori",
                       prefixIcon: const Icon(Icons.category),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ✅ Date Picker
+                  InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime.now().subtract(
+                          const Duration(days: 365 * 3),
+                        ),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null && mounted) {
+                        setState(() => selectedDate = picked);
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'Tanggal',
+                        prefixIcon: const Icon(Icons.calendar_today),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        DateFormat('dd MMM yyyy').format(selectedDate),
                       ),
                     ),
                   ),
@@ -234,20 +285,14 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: _updateExpense,
-                      icon: const Icon(
-                        Icons.save_outlined,
-                        color: Colors.black,
-                      ),
-                      label: const Text(
+                      icon: const Icon(Icons.save_outlined),
+                      label: Text(
                         "Simpan Perubahan",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black, // 🔹 teks hitam
-                        ),
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Colors.white, // tombol putih di atas gradien
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black87,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -267,9 +312,12 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                         Icons.delete_outline,
                         color: Colors.redAccent,
                       ),
-                      label: const Text(
+                      label: Text(
                         "Hapus Pengeluaran",
-                        style: TextStyle(color: Colors.redAccent),
+                        style: GoogleFonts.poppins(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -277,7 +325,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        backgroundColor: Colors.white.withValues(alpha: 0.9),
+                        backgroundColor: Colors.white.withOpacity(0.9),
                       ),
                     ),
                   ),

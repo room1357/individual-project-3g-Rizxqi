@@ -63,7 +63,7 @@ class LoopingExamples {
   ) {
     List<Expense> result = [];
     for (Expense expense in expenses) {
-      if (expense.category.toLowerCase() == category.toLowerCase()) {
+      if (expense.categoryId.toLowerCase() == category.toLowerCase()) {
         result.add(expense);
       }
     }
@@ -76,7 +76,8 @@ class LoopingExamples {
   ) {
     return expenses
         .where(
-          (expense) => expense.category.toLowerCase() == category.toLowerCase(),
+          (expense) =>
+              expense.categoryId.toLowerCase() == category.toLowerCase(),
         )
         .toList();
   }

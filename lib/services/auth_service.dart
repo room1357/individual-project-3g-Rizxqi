@@ -8,10 +8,8 @@ class AuthService {
 
   User? currentUser;
   static const _keyUsername = 'username';
-  static const _keyPassword = 'password'; // enkripsi
+  static const _keyPassword = 'password'; // sebaiknya dienkripsi di real app
   static const _keyIsLoggedIn = 'isLoggedIn';
-
-  final List<User> _userList = []; // variabel
 
   /// 🔹 Inisialisasi awal untuk memuat data user dari SharedPreferences
   Future<void> init() async {
@@ -24,8 +22,7 @@ class AuthService {
 
       if (username != null && password != null) {
         currentUser = User(
-          fullname:
-              username, // Bisa kamu ubah kalau ada fullname di penyimpanan
+          fullname: username,
           email: '',
           username: username,
           password: password,
@@ -36,11 +33,11 @@ class AuthService {
 
   /// 🔹 Register user baru
   Future<bool> register(User newUser) async {
-    // Cek apakah username sudah terdaftar
-    final exists = _userList.any((u) => u.username == newUser.username);
+    // Cek apakah username sudah terdaftar di userList global
+    final exists = userList.any((u) => u.username == newUser.username);
     if (exists) return false;
 
-    _userList.add(newUser);
+    userList.add(newUser);
 
     // Simpan ke SharedPreferences
     final prefs = await SharedPreferences.getInstance();
@@ -54,8 +51,8 @@ class AuthService {
 
   /// 🔹 Login user
   Future<bool> login(String username, String password) async {
-    // Cari user di daftar (simulasi database)
-    final user = _userList.firstWhere(
+    // Cari user di daftar global userList
+    final user = userList.firstWhere(
       (u) => u.username == username && u.password == password,
       orElse: () => User(fullname: '', email: '', username: '', password: ''),
     );
@@ -70,7 +67,7 @@ class AuthService {
       return true;
     }
 
-    // Kalau user tidak ditemukan di list (misal app restart), cek SharedPreferences
+    // Kalau user tidak ditemukan di list, cek SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     final savedUsername = prefs.getString(_keyUsername);
     final savedPassword = prefs.getString(_keyPassword);
@@ -106,3 +103,13 @@ class AuthService {
     return currentUser;
   }
 }
+
+// 🔹 Dummy user global (simulasi database lokal)
+final List<User> userList = [
+  User(
+    fullname: 'User Dummy',
+    email: 'user1@example.com',
+    username: 'user1',
+    password: 'password1',
+  ),
+];

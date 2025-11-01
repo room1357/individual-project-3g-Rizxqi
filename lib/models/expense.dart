@@ -4,19 +4,21 @@ class Expense {
   final String id;
   final String title;
   final double amount;
-  final String category; // kategori umum (contoh: Makanan, Transport)
+  final String categoryId; // kategori umum (contoh: Makanan, Transport)
   final DateTime date;
   final String? description; // nullable agar tidak wajib diisi
   final String? service; // opsional: kategori service jika ada
+  final bool isIncome;
 
   Expense({
     required this.id,
     required this.title,
     required this.amount,
-    required this.category,
+    required this.categoryId,
     required this.date,
-    this.description,
+    this.description = '',
     this.service,
+    this.isIncome = false,
   });
 
   // ✅ Format angka ke dalam Rupiah
@@ -36,6 +38,6 @@ class Expense {
 
   // ✅ Ambil kategori final (prioritaskan service jika ada)
   String get displayCategory {
-    return service ?? category;
+    return service ?? categoryId;
   }
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../models/category.dart';
 import '../models/expense.dart';
 import '../services/expense_service.dart';
+import '../services/category_service.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -15,33 +17,61 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final titleController = TextEditingController();
   final amountController = TextEditingController();
   final noteController = TextEditingController();
-  String category = 'Makanan';
+
+  String? selectedCategoryId;
   DateTime selectedDate = DateTime.now();
 
-  final expenseService = ExpenseService(); // Singleton instance
+  final expenseService = ExpenseService();
+  final categoryService = CategoryService();
+  late List<Category> categories;
+
+  @override
+  void initState() {
+    super.initState();
+    categories = categoryService.getAll();
+    if (categories.isNotEmpty) {
+      selectedCategoryId = categories.first.id;
+    }
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    amountController.dispose();
+    noteController.dispose();
+    super.dispose();
+  }
 
   Future<void> _save() async {
     final amt =
         double.tryParse(amountController.text.replaceAll(',', '')) ?? 0.0;
 
+    if (amt <= 0 || selectedCategoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Harap isi semua data dengan benar')),
+      );
+      return;
+    }
+
     final newExpense = Expense(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: titleController.text.isEmpty ? 'Untitled' : titleController.text,
       amount: amt,
-      category: category,
+      categoryId: selectedCategoryId!,
       date: selectedDate,
-      description: noteController.text,
+      description: noteController.text.isEmpty ? null : noteController.text,
     );
 
     expenseService.addExpense(newExpense);
 
-    if (!mounted) return; // ✅ pastikan widget masih aktif
+    if (!mounted) return;
     Navigator.pop(context, newExpense);
   }
 
   @override
   Widget build(BuildContext context) {
     final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ');
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6FA),
       appBar: AppBar(
@@ -61,7 +91,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         child: Column(
           children: [
             const SizedBox(height: 12),
-            // Display amount dynamically
+
+            // Amount display
             ValueListenableBuilder(
               valueListenable: amountController,
               builder: (context, value, _) {
@@ -98,81 +129,106 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Input card
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: amountController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Amount',
-                      prefixText: 'Rp ',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: category,
-                    items:
-                        [
-                              'Makanan',
-                              'Transportasi',
-                              'Utilitas',
-                              'Hiburan',
-                              'Pendidikan',
-                            ]
-                            .map(
-                              (c) => DropdownMenuItem(value: c, child: Text(c)),
-                            )
-                            .toList(),
-                    onChanged: (v) => setState(() => category = v ?? category),
-                    decoration: const InputDecoration(labelText: 'Category'),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(labelText: 'Title'),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: noteController,
-                    decoration: const InputDecoration(labelText: 'Note'),
-                  ),
-                  const SizedBox(height: 12),
-                  InkWell(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate,
-                        firstDate: DateTime.now().subtract(
-                          const Duration(days: 365 * 3),
+            // Form card
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: amountController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Amount',
+                          prefixText: 'Rp ',
+                          border: OutlineInputBorder(),
                         ),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                      );
-                      if (picked != null && mounted) {
-                        setState(() => selectedDate = picked);
-                      }
-                    },
-                    child: InputDecorator(
-                      decoration: const InputDecoration(labelText: 'Date'),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(DateFormat('dd MMM yyyy').format(selectedDate)),
-                          const Icon(Icons.calendar_today),
-                        ],
                       ),
-                    ),
+                      const SizedBox(height: 16),
+
+                      // ✅ Dropdown pakai ID
+                      DropdownButtonFormField<String>(
+                        value: selectedCategoryId,
+                        items:
+                            categories
+                                .map(
+                                  (c) => DropdownMenuItem(
+                                    value: c.id, // ✅ Pakai ID
+                                    child: Text(c.name),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged:
+                            (v) => setState(() => selectedCategoryId = v),
+                        decoration: const InputDecoration(
+                          labelText: 'Category',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      TextField(
+                        controller: titleController,
+                        decoration: const InputDecoration(
+                          labelText: 'Title',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      TextField(
+                        controller: noteController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Note',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      InkWell(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime.now().subtract(
+                              const Duration(days: 365 * 3),
+                            ),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365),
+                            ),
+                          );
+                          if (picked != null && mounted) {
+                            setState(() => selectedDate = picked);
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Date',
+                            border: OutlineInputBorder(),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                DateFormat('dd MMM yyyy').format(selectedDate),
+                              ),
+                              const Icon(Icons.calendar_today),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 16),
 
             // Save button
             SizedBox(
