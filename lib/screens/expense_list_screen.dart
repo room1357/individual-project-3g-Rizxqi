@@ -68,8 +68,6 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
     expenses = expenseService.getAllExpenses();
     totalAllExpenseNotifier.value = _calculateTotal(expenses);
     _filterExpenses();
-
-    // ✅
     setState(() => isLoading = false);
   }
 
@@ -86,7 +84,6 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
 
   void _filterExpenses() {
     // debugPrint('🔍 Filter dipanggil');
-
     final searchText = searchController.text.toLowerCase();
     final selectedCategory = selectedCategoryIdNotifier.value;
 
@@ -162,7 +159,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
         elevation: 0,
         foregroundColor: Colors.black87,
         title: Text(
-          'Hello, John Doe',
+          'Hello,',
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
         actions: [
@@ -218,6 +215,9 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                         return ListView.builder(
                           itemCount: filteredExpenses.length,
                           itemBuilder: (ctx, i) {
+                            if (i >= filteredExpenses.length) {
+                              return const SizedBox();
+                            }
                             final e = filteredExpenses[i];
                             final category = _getCategoryForExpense(
                               e.categoryId,

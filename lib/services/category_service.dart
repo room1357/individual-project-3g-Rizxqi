@@ -99,6 +99,16 @@ class CategoryService {
         );
   }
 
+  /// 🔹 Validate if icon exists
+  bool isValidIcon(String iconName) {
+    return cupertinoIcons.containsKey(iconName);
+  }
+
+  /// 🔹 Get icon or default
+  String getValidIconName(String iconName) {
+    return cupertinoIcons.containsKey(iconName) ? iconName : 'other';
+  }
+
   /// 🔹 Get count
   int get count => _categories.length;
 }

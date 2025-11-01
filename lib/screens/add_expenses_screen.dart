@@ -31,6 +31,16 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     categories = categoryService.getAll();
     if (categories.isNotEmpty) {
       selectedCategoryId = categories.first.id;
+    } else {
+      selectedCategoryId = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Belum ada kategori. Silakan tambah kategori dulu.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      });
     }
   }
 
@@ -155,23 +165,37 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       DropdownButtonFormField<String>(
                         value: selectedCategoryId,
                         items:
-                            categories
-                                .map(
-                                  (c) => DropdownMenuItem(
-                                    value: c.id, // ✅ Pakai ID
-                                    child: Text(c.name),
+                            categories.isEmpty
+                                ? [
+                                  const DropdownMenuItem(
+                                    value: null,
+                                    child: Text('Belum ada kategori'),
                                   ),
-                                )
-                                .toList(),
+                                ]
+                                : categories
+                                    .map(
+                                      (c) => DropdownMenuItem(
+                                        value: c.id,
+                                        child: Text(c.name),
+                                      ),
+                                    )
+                                    .toList(),
                         onChanged:
-                            (v) => setState(() => selectedCategoryId = v),
-                        decoration: const InputDecoration(
+                            categories.isEmpty
+                                ? null
+                                : (v) {
+                                  setState(() => selectedCategoryId = v);
+                                },
+                        decoration: InputDecoration(
                           labelText: 'Category',
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
+                          errorText:
+                              categories.isEmpty
+                                  ? 'Tambah kategori dulu'
+                                  : null,
                         ),
                       ),
                       const SizedBox(height: 16),
-
                       TextField(
                         controller: titleController,
                         decoration: const InputDecoration(

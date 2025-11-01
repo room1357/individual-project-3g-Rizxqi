@@ -45,7 +45,6 @@ class ExpenseItem extends StatelessWidget {
         leading: CircleAvatar(
           backgroundColor: category.color.withValues(alpha: 0.15),
           child: Icon(
-            // ✅ INI YANG DIMAKSUD: Langsung pakai category.iconName
             cupertinoIcons[category.iconName] ?? CupertinoIcons.question_circle,
             color: category.color,
             size: 22,
@@ -58,7 +57,6 @@ class ExpenseItem extends StatelessWidget {
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Text(
-            // ✅ INI JUGA: Langsung pakai category.name
             '${category.name} • ${expense.formattedDate}',
             style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),

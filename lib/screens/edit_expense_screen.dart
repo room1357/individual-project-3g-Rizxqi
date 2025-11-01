@@ -154,11 +154,11 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.95),
+              color: Colors.white.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -210,7 +210,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
 
                   // ✅ Kategori - PAKAI ID!
                   DropdownButtonFormField<String>(
-                    value: selectedCategoryId, // ✅ ID
+                    initialValue: selectedCategoryId, // ✅ ID
                     items:
                         categories
                             .map(
@@ -325,7 +325,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        backgroundColor: Colors.white.withOpacity(0.9),
+                        backgroundColor: Colors.white.withValues(alpha: 0.9),
                       ),
                     ),
                   ),

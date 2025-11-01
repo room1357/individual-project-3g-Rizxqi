@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/category.dart';
 import '../services/category_service.dart';
 import 'add_category_screen.dart';
+import 'edit_category_screen.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
@@ -18,6 +19,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     final categories = service.getAll();
+    for (var cat in categories) {
+      if (!cupertinoIcons.containsKey(cat.iconName)) {
+        debugPrint('❌ BAD ICON FOUND:');
+        debugPrint('   Category: ${cat.name}');
+        debugPrint('   Icon: ${cat.iconName}');
+        debugPrint('   Valid icons: ${cupertinoIcons.keys.toList()}');
+      }
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
@@ -84,6 +93,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 
   Widget _buildCategoryItem(Category c) {
+    final iconData = cupertinoIcons[c.iconName];
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -118,7 +128,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: c.color.withOpacity(0.15),
+                    color: c.color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(
@@ -206,6 +216,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 
   void _showCategoryOptions(Category c) {
+    // ✅ TAMBAH DEBUG
+    debugPrint('🔍 Category ID: ${c.id}');
+    debugPrint('🔍 Category Name: ${c.name}');
+    debugPrint('🔍 Icon Name: ${c.iconName}');
+    debugPrint('🔍 Icon exists: ${cupertinoIcons.containsKey(c.iconName)}');
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -227,7 +242,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 ),
               ),
               ListTile(
-                leading: Icon(cupertinoIcons[c.iconName], color: c.color),
+                // ✅ FIX: Tambah null safety
+                leading: Icon(
+                  cupertinoIcons[c.iconName] ?? CupertinoIcons.question_circle,
+                  color: c.color,
+                ),
                 title: Text(
                   c.name,
                   style: GoogleFonts.poppins(
@@ -246,9 +265,34 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: Navigasi ke halaman edit
+                onTap: () async {
+                  Navigator.pop(context); // Close bottom sheet
+
+                  // ✅ ADD: Debug logging
+                  debugPrint('📝 Opening edit for: ${c.id} - ${c.name}');
+
+                  try {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditCategoryScreen(category: c),
+                      ),
+                    );
+
+                    if (result != null && mounted) {
+                      setState(() {});
+                    }
+                  } catch (e) {
+                    debugPrint('❌ Edit error: $e');
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Gagal membuka edit: $e'),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                    }
+                  }
                 },
               ),
               ListTile(
@@ -260,11 +304,49 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                onTap: () {
-                  setState(() {
-                    service.deleteCategory(c.id);
-                  });
-                  Navigator.pop(context);
+                onTap: () async {
+                  Navigator.pop(context); // Close bottom sheet first
+
+                  // ✅ TAMBAH KONFIRMASI DELETE
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder:
+                        (ctx) => AlertDialog(
+                          title: const Text('Hapus Kategori'),
+                          content: Text('Yakin ingin menghapus "${c.name}"?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Batal'),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.redAccent,
+                              ),
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text(
+                                'Hapus',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                  );
+
+                  if (confirm == true && mounted) {
+                    setState(() {
+                      service.deleteCategory(c.id);
+                    });
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${c.name} berhasil dihapus'),
+                        backgroundColor: Colors.redAccent,
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 },
               ),
               ListTile(

@@ -10,27 +10,27 @@ class ExpenseService {
 
   // ✅ FIX: Sesuaikan categoryId dengan CategoryService
   final List<Expense> _expenses = [
-    Expense(
-      id: '1',
-      title: 'Makan Siang',
-      amount: 25000,
-      date: DateTime.now(),
-      categoryId: '1', // ✅ Sesuaikan dengan ID di CategoryService (Food)
-    ),
-    Expense(
-      id: '2',
-      title: 'Bensin Motor',
-      amount: 15000,
-      date: DateTime.now(),
-      categoryId: '2', // ✅ Transport
-    ),
-    Expense(
-      id: '3',
-      title: 'Nonton Bioskop',
-      amount: 50000,
-      date: DateTime.now().subtract(const Duration(days: 1)),
-      categoryId: '3', // ✅ Entertainment
-    ),
+    // Expense(
+    //   id: '1',
+    //   title: 'Makan Siang',
+    //   amount: 25000,
+    //   date: DateTime.now(),
+    //   categoryId: '1', // ✅
+    // ),
+    // Expense(
+    //   id: '2',
+    //   title: 'Bensin Motor',
+    //   amount: 15000,
+    //   date: DateTime.now(),
+    //   categoryId: '2', // ✅ Transport
+    // ),
+    // Expense(
+    //   id: '3',
+    //   title: 'Nonton Bioskop',
+    //   amount: 50000,
+    //   date: DateTime.now().subtract(const Duration(days: 1)),
+    //   categoryId: '3', // ✅ Entertainment
+    // ),
   ];
 
   // ✅ Semua method sama seperti sebelumnya
