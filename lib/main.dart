@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:pemrograman_mobile/helpers/shared_pref_helper.dart';
 import 'package:pemrograman_mobile/screens/home_screen.dart';
 import 'package:pemrograman_mobile/screens/login_screen.dart';
 import 'package:pemrograman_mobile/services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('id_ID', null);
+  await initializeDateFormatting('id', null);
+  await SharedPrefHelper.init();
+  await AuthService.instance.init();
 
-  // 🔹 Pastikan inisialisasi AuthService yang menggunakan SharedPreferences sudah selesai
-  final auth = AuthService.instance;
-  await auth.init();
+  final bool loggedIn = AuthService.instance.isLoggedIn();
 
-  // 🔹 Cek apakah user masih login
-  final bool isLoggedIn = await auth.isLoggedIn();
-
-  runApp(MyApp(isLoggedIn: isLoggedIn));
+  runApp(MyApp(isLoggedIn: loggedIn));
 }
 
 class MyApp extends StatelessWidget {
@@ -26,7 +25,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Aplikasi Pengeluaran',
+      title: 'Expense Tracker',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,

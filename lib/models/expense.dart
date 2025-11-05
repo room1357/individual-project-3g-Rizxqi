@@ -21,6 +21,22 @@ class Expense {
     this.isIncome = false,
   });
 
+  factory Expense.fromJson(Map<String, dynamic> json) => Expense(
+    id: json['id'] as String,
+    title: json['title'] as String,
+    amount: (json['amount'] as num).toDouble(),
+    categoryId: json['categoryId'] as String,
+    date: DateTime.parse(json['date'] as String),
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'amount': amount,
+    'categoryId': categoryId,
+    'date': date.toIso8601String(),
+  };
+
   // ✅ Format angka ke dalam Rupiah
   String get formattedAmount {
     final formatter = NumberFormat.currency(

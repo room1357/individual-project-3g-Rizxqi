@@ -13,6 +13,19 @@ class Category {
     required this.color,
   });
 
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      iconName: json['iconName'] ?? 'default_item',
+      color: Color(json['color'] ?? Colors.grey.value),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'name': name, 'iconName': iconName, 'color': color.value};
+  }
+
   Category copyWith({
     String? id,
     String? name,

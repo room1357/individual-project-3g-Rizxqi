@@ -1,115 +1,101 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
+import 'expense_service.dart';
+import 'category_service.dart';
+import '../helpers/shared_pref_helper.dart';
 
 class AuthService {
-  // 🔹 Singleton pattern
+  // 🔹 Singleton
   static final AuthService instance = AuthService._internal();
   AuthService._internal();
 
   User? currentUser;
-  static const _keyUsername = 'username';
-  static const _keyPassword = 'password'; // sebaiknya dienkripsi di real app
-  static const _keyIsLoggedIn = 'isLoggedIn';
 
-  /// 🔹 Inisialisasi awal untuk memuat data user dari SharedPreferences
+  final _prefs = SharedPrefHelper();
+
+  // ============================================================
+  // 🔹 INISIALISASI APLIKASI SAAT START
+  // ============================================================
   Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool(_keyIsLoggedIn) ?? false;
-
-    if (isLoggedIn) {
-      final username = prefs.getString(_keyUsername);
-      final password = prefs.getString(_keyPassword);
-
-      if (username != null && password != null) {
+    if (_prefs.isLoggedIn()) {
+      final userData = _prefs.getCurrentUser();
+      if (userData != null) {
         currentUser = User(
-          fullname: username,
-          email: '',
-          username: username,
-          password: password,
+          fullname: userData['fullname'] ?? '',
+          email: userData['email'] ?? '',
+          username: userData['username'] ?? '',
+          password: userData['password'] ?? '',
         );
+
+        // 🔹 Load data milik user ini
+        await ExpenseService().loadExpenses();
+        await CategoryService().loadCategories();
       }
     }
   }
 
-  /// 🔹 Register user baru
+  // ============================================================
+  // 🔹 REGISTER USER BARU
+  // ============================================================
   Future<bool> register(User newUser) async {
-    // Cek apakah username sudah terdaftar di userList global
-    final exists = userList.any((u) => u.username == newUser.username);
-    if (exists) return false;
-
-    userList.add(newUser);
-
-    // Simpan ke SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyUsername, newUser.username);
-    await prefs.setString(_keyPassword, newUser.password);
-    await prefs.setBool(_keyIsLoggedIn, true);
-
-    currentUser = newUser;
-    return true;
-  }
-
-  /// 🔹 Login user
-  Future<bool> login(String username, String password) async {
-    // Cari user di daftar global userList
-    final user = userList.firstWhere(
-      (u) => u.username == username && u.password == password,
-      orElse: () => User(fullname: '', email: '', username: '', password: ''),
+    final success = await _prefs.registerUser(
+      newUser.fullname,
+      newUser.email,
+      newUser.username,
+      newUser.password,
     );
 
-    if (user.username.isNotEmpty) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_keyUsername, user.username);
-      await prefs.setString(_keyPassword, user.password);
-      await prefs.setBool(_keyIsLoggedIn, true);
-
-      currentUser = user;
-      return true;
+    if (success) {
+      currentUser = newUser;
+      await _prefs.loginUser(newUser.username, newUser.password);
     }
 
-    // Kalau user tidak ditemukan di list, cek SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    final savedUsername = prefs.getString(_keyUsername);
-    final savedPassword = prefs.getString(_keyPassword);
-
-    if (savedUsername == username && savedPassword == password) {
-      currentUser = User(
-        fullname: username,
-        email: '',
-        username: username,
-        password: password,
-      );
-      return true;
-    }
-
-    return false;
+    return success;
   }
 
-  /// 🔹 Logout user
+  // ============================================================
+  // 🔹 LOGIN USER
+  // ============================================================
+  Future<bool> login(String username, String password) async {
+    final success = await _prefs.loginUser(username, password);
+
+    if (success) {
+      final userData = _prefs.getCurrentUser();
+      if (userData != null) {
+        currentUser = User(
+          fullname: userData['fullname'] ?? '',
+          email: userData['email'] ?? '',
+          username: userData['username'] ?? '',
+          password: userData['password'] ?? '',
+        );
+
+        // 🔹 Muat data user
+        await ExpenseService().loadExpenses();
+        await CategoryService().loadCategories();
+      }
+    }
+
+    return success;
+  }
+
+  // ============================================================
+  // 🔹 LOGOUT USER
+  // ============================================================
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await _prefs.logout();
     currentUser = null;
   }
 
-  /// 🔹 Mengecek status login
-  Future<bool> isLoggedIn() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_keyIsLoggedIn) ?? false;
+  // ============================================================
+  // 🔹 CEK STATUS LOGIN
+  // ============================================================
+  bool isLoggedIn() {
+    return _prefs.isLoggedIn();
   }
 
-  /// 🔹 Ambil data user yang sedang login
+  // ============================================================
+  // 🔹 AMBIL USER AKTIF SAAT INI
+  // ============================================================
   User? getCurrentUser() {
     return currentUser;
   }
 }
-
-// 🔹 Dummy user global (simulasi database lokal)
-final List<User> userList = [
-  User(
-    fullname: 'User Dummy',
-    email: 'user1@example.com',
-    username: 'user1',
-    password: 'password1',
-  ),
-];

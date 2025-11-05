@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pemrograman_mobile/services/auth_service.dart';
+import 'package:pemrograman_mobile/services/storage_service.dart';
 import '../models/category.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -48,25 +50,52 @@ class CategoryService {
     ),
     Category(id: '5', name: 'Health', iconName: 'health', color: Colors.red),
   ];
+  final _storage = StorageService();
+
+  /// 🔹 Muat kategori user dari penyimpanan
+  Future<void> loadCategories() async {
+    final user = AuthService.instance.getCurrentUser();
+    if (user == null) return;
+
+    final data = await _storage.loadData('categories_${user.username}');
+    if (data.isEmpty) return;
+
+    _categories
+      ..clear()
+      ..addAll(data.map((e) => Category.fromJson(e)).toList());
+  }
+
+  /// 🔹 Simpan kategori ke penyimpanan
+  Future<void> saveCategories() async {
+    final user = AuthService.instance.getCurrentUser();
+    if (user == null) return;
+
+    await _storage.saveData(
+      'categories_${user.username}',
+      _categories.map((c) => c.toJson()).toList(),
+    );
+  }
 
   /// 🔹 Ambil semua kategori
   List<Category> getAll() => List.unmodifiable(_categories);
 
   /// 🔹 Tambahkan kategori baru
-  void addCategory(Category category) {
+  Future<void> addCategory(Category category) async {
     if (_categories.any((c) => c.id == category.id)) {
       throw Exception("Kategori dengan ID ${category.id} sudah ada!");
     }
     _categories.add(category);
+    await saveCategories();
   }
 
   /// 🔹 Update kategori berdasarkan ID
-  void editCategory(Category updatedCategory) {
+  Future<void> editCategory(Category updatedCategory) async {
     final index = _categories.indexWhere(
       (category) => category.id == updatedCategory.id,
     );
     if (index != -1) {
       _categories[index] = updatedCategory;
+      await saveCategories();
     } else {
       throw Exception(
         "Kategori dengan ID ${updatedCategory.id} tidak ditemukan!",
@@ -75,8 +104,9 @@ class CategoryService {
   }
 
   /// 🔹 Hapus kategori berdasarkan ID
-  void deleteCategory(String id) {
+  Future<void> deleteCategory(String id) async {
     _categories.removeWhere((category) => category.id == id);
+    await saveCategories();
   }
 
   /// 🔹 Cari kategori berdasarkan ID (return null kalau tidak ada) ✅ FIX
@@ -111,4 +141,9 @@ class CategoryService {
 
   /// 🔹 Get count
   int get count => _categories.length;
+
+  /// 🔹 Reset saat logout
+  void clearAll() {
+    _categories.clear();
+  }
 }

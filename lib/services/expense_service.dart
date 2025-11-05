@@ -1,3 +1,5 @@
+import 'package:pemrograman_mobile/services/auth_service.dart';
+import 'package:pemrograman_mobile/services/storage_service.dart';
 import 'package:pemrograman_mobile/utils/date_utils.dart';
 
 import '../models/expense.dart';
@@ -17,44 +19,46 @@ class ExpenseService {
     //   date: DateTime.now(),
     //   categoryId: '1', // ✅
     // ),
-    // Expense(
-    //   id: '2',
-    //   title: 'Bensin Motor',
-    //   amount: 15000,
-    //   date: DateTime.now(),
-    //   categoryId: '2', // ✅ Transport
-    // ),
-    // Expense(
-    //   id: '3',
-    //   title: 'Nonton Bioskop',
-    //   amount: 50000,
-    //   date: DateTime.now().subtract(const Duration(days: 1)),
-    //   categoryId: '3', // ✅ Entertainment
-    // ),
   ];
+  final _storage = StorageService();
+
+  Future<void> loadExpenses() async {
+    final user = AuthService.instance.getCurrentUser();
+    if (user == null) return;
+
+    final data = await _storage.loadData('expenses_${user.username}');
+    _expenses.clear();
+    _expenses.addAll(data.map((e) => Expense.fromJson(e)).toList());
+  }
 
   // ✅ Semua method sama seperti sebelumnya
+  Future<void> saveExpenses() async {
+    final user = AuthService.instance.getCurrentUser();
+    if (user == null) return;
+
+    await _storage.saveData(
+      'expenses_${user.username}',
+      _expenses.map((e) => e.toJson()).toList(),
+    );
+  }
+
   List<Expense> getAllExpenses() => List.unmodifiable(_expenses);
 
-  void addExpense(Expense expense) {
-    if (_expenses.any((e) => e.id == expense.id)) {
-      throw Exception("Expense dengan ID ${expense.id} sudah ada!");
-    }
+  Future<void> addExpense(Expense expense) async {
     _expenses.add(expense);
+    await saveExpenses();
   }
 
-  void deleteExpense(String id) {
+  Future<void> deleteExpense(String id) async {
     _expenses.removeWhere((e) => e.id == id);
+    await saveExpenses();
   }
 
-  void updateExpense(Expense updatedExpense) {
+  Future<void> updateExpense(Expense updatedExpense) async {
     final index = _expenses.indexWhere((e) => e.id == updatedExpense.id);
     if (index != -1) {
       _expenses[index] = updatedExpense;
-    } else {
-      throw Exception(
-        "Expense dengan ID ${updatedExpense.id} tidak ditemukan!",
-      );
+      await saveExpenses();
     }
   }
 
