@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:pemrograman_mobile/models/expense_manager.dart';
+import 'package:pemrograman_mobile/screens/looping_expense_screen.dart';
 import 'login_screen.dart';
-import 'expense_list_screen.dart';
 import 'advanced_list_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  HomeScreen({super.key});
+
+  // ✅ bikin instance di sini (tidak bisa pakai const)
+  final ExpenseManager manager = ExpenseManager();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Beranda'),
+        title: const Text('Beranda'),
         backgroundColor: Colors.blue,
         actions: [
           IconButton(
@@ -24,16 +28,16 @@ class HomeScreen extends StatelessWidget {
                 (route) => false, // Hapus semua route sebelumnya
               );
             },
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
           ),
         ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Dashboard',
               style: TextStyle(
                 fontSize: 24,
@@ -41,7 +45,7 @@ class HomeScreen extends StatelessWidget {
                 color: Colors.blue,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
@@ -56,7 +60,9 @@ class HomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const AdvancedExpenseListScreen(),
+                          builder:
+                              (context) =>
+                                  const AdvancedExpenseListScreen(), // ✅ tanpa manager
                         ),
                       );
                     },
@@ -69,7 +75,7 @@ class HomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ExpenseListScreen(),
+                          builder: (context) => const LoopingExamplesScreen(),
                         ),
                       );
                     },
@@ -129,15 +135,15 @@ class HomeScreen extends StatelessWidget {
                     );
                   },
               child: Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(icon, size: 48, color: color),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Text(
                       title,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),

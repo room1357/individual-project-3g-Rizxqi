@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/expense.dart';
 import '../models/expense_manager.dart';
+import 'add_expense_screen.dart';
 
 class AdvancedExpenseListScreen extends StatefulWidget {
-  const AdvancedExpenseListScreen({super.key});
+  const AdvancedExpenseListScreen({super.key}); // tetap tanpa manager
 
   @override
   _AdvancedExpenseListScreenState createState() =>
@@ -11,23 +13,41 @@ class AdvancedExpenseListScreen extends StatefulWidget {
 }
 
 class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
-  List<Expense> expenses = ExpenseManager.expenses; // ✅ ambil dari manager
-  List<Expense> filteredExpenses = [];
   String selectedCategory = 'Semua';
   TextEditingController searchController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    filteredExpenses = expenses;
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final manager = context.watch<ExpenseManager>();
+    final expenses = manager.expenses;
+
+    // filter realtime
+    final filteredExpenses =
+        expenses.where((expense) {
+          bool matchesSearch =
+              searchController.text.isEmpty ||
+              expense.title.toLowerCase().contains(
+                searchController.text.toLowerCase(),
+              ) ||
+              expense.category.toLowerCase().contains(
+                searchController.text.toLowerCase(),
+              ) ||
+              expense.description.toLowerCase().contains(
+                searchController.text.toLowerCase(),
+              );
+
+          bool matchesCategory =
+              selectedCategory == 'Semua' ||
+              expense.category == selectedCategory;
+
+          return matchesSearch && matchesCategory;
+        }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pengeluaran Advanced'),
         backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
@@ -41,7 +61,7 @@ class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),
               ),
-              onChanged: (value) => _filterExpenses(),
+              onChanged: (_) => setState(() {}), // refresh filter
             ),
           ),
 
@@ -53,33 +73,28 @@ class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children:
                   [
-                        'Semua',
-                        'Makanan',
-                        'Transportasi',
-                        'Utilitas',
-                        'Hiburan',
-                        'Pendidikan',
-                      ]
-                      .map(
-                        (category) => Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: FilterChip(
-                            label: Text(category),
-                            selected: selectedCategory == category,
-                            onSelected: (selected) {
-                              setState(() {
-                                selectedCategory = category;
-                                _filterExpenses();
-                              });
-                            },
-                          ),
-                        ),
-                      )
-                      .toList(),
+                    'Semua',
+                    'Makanan',
+                    'Transportasi',
+                    'Utilitas',
+                    'Hiburan',
+                    'Pendidikan',
+                  ].map((category) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(category),
+                        selected: selectedCategory == category,
+                        onSelected: (_) {
+                          setState(() => selectedCategory = category);
+                        },
+                      ),
+                    );
+                  }).toList(),
             ),
           ),
 
-          // 📊 Statistik ringkasan (pakai ExpenseManager)
+          // 📊 Statistik ringkasan
           Container(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -87,12 +102,12 @@ class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
               children: [
                 _buildStatCard(
                   'Total',
-                  'Rp ${_calculateTotal(filteredExpenses)}',
+                  'Rp ${_calculateTotal(filteredExpenses).toStringAsFixed(0)}',
                 ),
                 _buildStatCard('Jumlah', '${filteredExpenses.length} item'),
                 _buildStatCard(
                   'Rata-rata',
-                  'Rp ${ExpenseManager.getAverageDaily(filteredExpenses).toStringAsFixed(0)}',
+                  'Rp ${manager.averageDaily.toStringAsFixed(0)}',
                 ),
               ],
             ),
@@ -143,27 +158,20 @@ class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (_) =>
+                      AddExpenseScreen(manager: context.read<ExpenseManager>()),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
     );
-  }
-
-  // 🔎 Filter data (pakai search dari manager)
-  void _filterExpenses() {
-    setState(() {
-      filteredExpenses =
-          expenses.where((expense) {
-            bool matchesSearch =
-                searchController.text.isEmpty ||
-                ExpenseManager.searchExpenses([
-                  expense,
-                ], searchController.text).isNotEmpty;
-
-            bool matchesCategory =
-                selectedCategory == 'Semua' ||
-                expense.category == selectedCategory;
-
-            return matchesSearch && matchesCategory;
-          }).toList();
-    });
   }
 
   // 📊 Widget statistik
@@ -179,7 +187,7 @@ class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
     );
   }
 
-  // 💰 Hitung total (pakai fold biar simple)
+  // 💰 Hitung total
   double _calculateTotal(List<Expense> expenses) {
     return expenses.fold(0.0, (sum, e) => sum + e.amount);
   }
@@ -225,7 +233,7 @@ class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
+          (_) => AlertDialog(
             title: Text(expense.title),
             content: Column(
               mainAxisSize: MainAxisSize.min,
