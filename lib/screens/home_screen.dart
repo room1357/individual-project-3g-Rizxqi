@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import '../services/expense_service.dart';
 import '../services/category_service.dart';
+import '../services/auth_service.dart';
 import '../utils/currency_utils.dart';
 import '../widget/expense_item.dart';
-import 'add_expenses_screen.dart';
-import 'statistics_screen.dart';
 import 'expense_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final ExpenseService _expenseService = ExpenseService();
   final CategoryService _categoryService = CategoryService();
   List<Expense> recentExpenses = [];
-  double totalBalance = 0; // Contoh, nanti dari service
+  double totalBalance = 0;
   double totalIncome = 0;
   double totalExpense = 0;
   bool isLoading = true;
@@ -85,9 +84,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'John Doe',
-                            style: TextStyle(
+                          Text(
+                            AuthService.instance.currentUser?.fullname ??
+                                'Guest',
+                            style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF2D3142),
@@ -347,52 +347,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildQuickAction(
-    String label,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF2D3142),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
