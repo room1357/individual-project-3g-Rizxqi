@@ -10,6 +10,7 @@ class ExpenseScreen extends StatefulWidget {
   const ExpenseScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ExpenseScreenState createState() => _ExpenseScreenState();
 }
 
@@ -46,7 +47,6 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         _expenses.where((expense) {
           final displayCategory =
               expense.displayCategory; // Menggunakan displayCategory dari model
-
           bool matchesSearch =
               searchController.text.isEmpty ||
               expense.title.toLowerCase().contains(
@@ -69,7 +69,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pengeluaran Advanced'),
+        title: const Text('List Pengeluaran'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
@@ -172,7 +172,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                                   child: ListTile(
                                     leading: CircleAvatar(
                                       backgroundColor: category.color
-                                          .withValues(alpha: 0.15),
+                                          .withOpacity(0.15),
                                       child: Icon(
                                         _getCategoryIcon(category.iconName),
                                         color: category.color,
@@ -182,11 +182,46 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                                     subtitle: Text(
                                       '${expense.displayCategory} • ${expense.formattedDate}',
                                     ),
-                                    trailing: Text(
-                                      expense.formattedAmount,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.red[600],
+                                    trailing: SizedBox(
+                                      width: 120,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            expense.formattedAmount,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.red[600],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              size: 20,
+                                              color: Colors.blue,
+                                            ),
+                                            onPressed: () {
+                                              _editExpense(context, expense);
+                                            },
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.delete,
+                                              size: 20,
+                                              color: Colors.red,
+                                            ),
+                                            onPressed: () {
+                                              _deleteExpense(expense);
+                                            },
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     onTap:
@@ -257,6 +292,45 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
       'other': CupertinoIcons.question_circle,
     };
     return cupertinoIconsMap[iconName] ?? CupertinoIcons.question_circle;
+  }
+
+  // ✏️ Edit expense
+  void _editExpense(BuildContext context, Expense expense) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
+    ).then((_) => _loadData());
+  }
+
+  // 🗑️ Delete expense
+  void _deleteExpense(Expense expense) {
+    showDialog(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Hapus Pengeluaran?'),
+            content: Text(
+              'Apakah kamu yakin ingin menghapus "${expense.title}"?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () {
+                  _expenseService.deleteExpense(expense.id);
+                  _loadData();
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Pengeluaran dihapus')),
+                  );
+                },
+                child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+    );
   }
 
   // 📋 Detail popup

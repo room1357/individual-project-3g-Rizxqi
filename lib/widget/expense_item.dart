@@ -30,7 +30,7 @@ class ExpenseItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -43,7 +43,7 @@ class ExpenseItem extends StatelessWidget {
           vertical: 10,
         ),
         leading: CircleAvatar(
-          backgroundColor: category.color.withValues(alpha: 0.15),
+          backgroundColor: category.color.withOpacity(0.15),
           child: Icon(
             cupertinoIcons[category.iconName] ?? CupertinoIcons.question_circle,
             color: category.color,
@@ -66,8 +66,8 @@ class ExpenseItem extends StatelessWidget {
           children: [
             Text(
               expense.formattedAmount,
-              style: const TextStyle(
-                color: Colors.redAccent,
+              style: TextStyle(
+                color: expense.isIncome ? Colors.green : Colors.redAccent,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),

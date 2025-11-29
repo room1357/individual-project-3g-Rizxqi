@@ -1,193 +1,399 @@
 import 'package:flutter/material.dart';
-import 'package:pemrograman_mobile/screens/expense_screen.dart';
-import '../services/auth_service.dart';
-import 'category_screen.dart';
+import '../models/expense.dart';
+import '../services/expense_service.dart';
+import '../services/category_service.dart';
+import '../utils/currency_utils.dart';
+import '../widget/expense_item.dart';
+import 'add_expenses_screen.dart';
 import 'statistics_screen.dart';
-import 'login_screen.dart';
-import 'profile_screen.dart';
-import 'settings_screen.dart';
+import 'expense_screen.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
-  // ✅ bikin instance di sini (tidak bisa pakai const)
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final ExpenseService _expenseService = ExpenseService();
+  final CategoryService _categoryService = CategoryService();
+  List<Expense> recentExpenses = [];
+  double totalBalance = 0; // Contoh, nanti dari service
+  double totalIncome = 0;
+  double totalExpense = 0;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => isLoading = true);
+    // Load data dari service
+    await _expenseService.loadExpenses();
+    await _categoryService.loadCategories();
+
+    final expenses = _expenseService.getAllExpenses();
+
+    // hitung total income/expense
+    double income = 0;
+    double expenseTotal = 0;
+    for (final e in expenses) {
+      if (e.isIncome) {
+        income += e.amount;
+      } else {
+        expenseTotal += e.amount;
+      }
+    }
+
+    setState(() {
+      recentExpenses = expenses.take(10).toList();
+      totalIncome = income;
+      totalExpense = expenseTotal;
+      totalBalance = totalIncome - totalExpense;
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final auth = AuthService.instance;
-    final currentUser = auth.currentUser; // ✅ Ambil user aktif dari singleton
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Beranda'),
-        backgroundColor: Colors.blue,
-        actions: [
-          IconButton(
-            tooltip: 'Logout',
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final confirm = await _showLogoutDialog(context);
-              if (confirm == true) {
-                await auth.logout(); // ✅ reset user di singleton
-                if (context.mounted) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    (route) => false,
-                  );
-                }
-              }
-            },
+      backgroundColor: const Color(0xFFF5F6FA),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          child: CustomScrollView(
+            slivers: [
+              // App Bar dengan Profile
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Good Morning',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'John Doe',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D3142),
+                            ),
+                          ),
+                        ],
+                      ),
+                      CircleAvatar(
+                        radius: 25,
+                        backgroundColor: Colors.purple[100],
+                        child: const Icon(Icons.person, color: Colors.purple),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Balance Card
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF6C63FF), Color(0xFF5A52D5)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.purple.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Total Balance',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          CurrencyUtils.format(totalBalance),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildBalanceItem(
+                                'Income',
+                                totalIncome,
+                                Icons.arrow_downward,
+                                Colors.green,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildBalanceItem(
+                                'Expense',
+                                totalExpense,
+                                Icons.arrow_upward,
+                                Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Quick Actions
+              // SliverToBoxAdapter(
+              //   child: Padding(
+              //     padding: const EdgeInsets.all(20),
+              //     child: Row(
+              //       children: [
+              //         Expanded(
+              //           child: _buildQuickAction(
+              //             'Expense List',
+              //             Icons.receipt_long,
+              //             const Color(0xFF6C63FF),
+              //             () {
+              //               Navigator.push(
+              //                 context,
+              //                 MaterialPageRoute(
+              //                   builder: (context) => const ExpenseScreen(),
+              //                 ),
+              //               ).then((_) => _loadData());
+              //             },
+              //           ),
+              //         ),
+              //         const SizedBox(width: 12),
+              //         Expanded(
+              //           child: _buildQuickAction(
+              //             'Statistics',
+              //             Icons.bar_chart,
+              //             const Color(0xFFFF6B6B),
+              //             () {
+              //               Navigator.push(
+              //                 context,
+              //                 MaterialPageRoute(
+              //                   builder: (context) => const StatisticsScreen(),
+              //                 ),
+              //               );
+              //             },
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
+
+              // Recent Transactions Header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Recent Transactions',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2D3142),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ExpenseScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('See All'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Transactions List
+              isLoading
+                  ? const SliverToBoxAdapter(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(40),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  )
+                  : recentExpenses.isEmpty
+                  ? SliverToBoxAdapter(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(40),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.receipt_long_outlined,
+                              size: 64,
+                              color: Colors.grey[300],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No transactions yet',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                  : SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final exp = recentExpenses[index];
+                        final category = _categoryService.getCategoryOrDefault(
+                          exp.categoryId,
+                        );
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: ExpenseItem(expense: exp, category: category),
+                        );
+                      }, childCount: recentExpenses.length),
+                    ),
+                  ),
+
+              // Bottom spacing
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBalanceItem(
+    String label,
+    double amount,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: Colors.white),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                Text(
+                  CurrencyUtils.format(amount),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    );
+  }
+
+  Widget _buildQuickAction(
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
           children: [
-            // 👇 sapaan dinamis
-            Text(
-              'Hai, ${currentUser?.fullname ?? 'Pengguna'} 👋',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Selamat datang di aplikasi pengelola keuangan Anda',
-              style: TextStyle(color: Colors.black54),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Dashboard',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                children: [
-                  _buildDashboardCard(
-                    context,
-                    title: 'Pengeluaran',
-                    icon: Icons.account_balance_wallet_outlined,
-                    color: Colors.green,
-                    onTap: () => _navigate(context, ExpenseScreen()),
-                  ),
-                  _buildDashboardCard(
-                    context,
-                    title: 'Statistik',
-                    icon: Icons.bar_chart_rounded,
-                    color: const Color.fromARGB(255, 0, 204, 255),
-                    onTap: () => _navigate(context, const StatisticsScreen()),
-                  ),
-                  _buildDashboardCard(
-                    context,
-                    title: 'Kategori',
-                    icon: Icons.category_rounded,
-                    color: const Color.fromARGB(255, 209, 255, 3),
-                    onTap: () => _navigate(context, CategoryScreen()),
-                  ),
-                  _buildDashboardCard(
-                    context,
-                    title: 'Profil',
-                    icon: Icons.person_rounded,
-                    color: Colors.blue,
-                    onTap: () => _navigate(context, const ProfileScreen()),
-                  ),
-                  _buildDashboardCard(
-                    context,
-                    title: 'Pesan',
-                    icon: Icons.message_rounded,
-                    color: Colors.orange,
-                    onTap: null,
-                  ),
-                  _buildDashboardCard(
-                    context,
-                    title: 'Pengaturan',
-                    icon: Icons.settings_rounded,
-                    color: Colors.purple,
-                    onTap: () => _navigate(context, const SettingsScreen()),
-                  ),
-                ],
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2D3142),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  // 🔹 helper untuk card navigasi
-  Widget _buildDashboardCard(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color color,
-    VoidCallback? onTap,
-  }) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap:
-            onTap ??
-            () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Fitur "$title" segera hadir!')),
-            ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 48, color: color),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 🔹 helper untuk navigasi antar halaman
-  void _navigate(BuildContext context, Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-  }
-
-  // 🔹 dialog konfirmasi logout
-  Future<bool?> _showLogoutDialog(BuildContext context) async {
-    return showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Konfirmasi Logout'),
-            content: const Text(
-              'Apakah Anda yakin ingin keluar dari akun ini?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Batal'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Logout'),
-              ),
-            ],
-          ),
     );
   }
 }
