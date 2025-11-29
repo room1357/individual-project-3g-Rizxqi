@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
+            MaterialPageRoute(builder: (_) => HomeScreen()),
           );
         }
       } else {
@@ -89,26 +89,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     (val) =>
                         val == null || val.isEmpty ? 'Masukkan password' : null,
               ),
-<<<<<<< HEAD
-            ),
-            SizedBox(height: 24),
-
-            // Tombol login
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Navigasi ke HomeScreen dengan pushReplacement
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) =>  HomeScreen()),
-                  );
-                },
-=======
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _login,
->>>>>>> 2b127b3c0acd27fcccc51bf6af13f2665870d3d9
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   padding: const EdgeInsets.symmetric(vertical: 16),

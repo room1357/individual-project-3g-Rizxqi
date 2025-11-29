@@ -1,15 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'models/expense_manager.dart';
-import 'screens/home_screen.dart';
-
-void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => ExpenseManager(),
-      child: const MyApp(),
-    ),
-  );
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pemrograman_mobile/helpers/shared_pref_helper.dart';
@@ -35,16 +24,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Expense App',
-      home: HomeScreen(),
-      debugShowCheckedModeBanner: false,
       title: 'Expense Tracker',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       home: FutureBuilder(
-        // menambahkan FutureBuilder splash (Plan)
+        // rencana splash screen singkat (0.5 detik)
         future: Future.delayed(const Duration(milliseconds: 500)),
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
@@ -52,7 +39,7 @@ class MyApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          // menentukan halaman awal sesuai status login
+          // menentukan halaman awal
           return isLoggedIn ? const HomeScreen() : const LoginScreen();
         },
       ),

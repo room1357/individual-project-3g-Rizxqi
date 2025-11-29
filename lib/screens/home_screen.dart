@@ -1,24 +1,16 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import 'package:pemrograman_mobile/models/expense_manager.dart';
-import 'package:pemrograman_mobile/screens/looping_expense_screen.dart';
-import 'login_screen.dart';
-import 'advanced_list_screen.dart';
-=======
+import 'package:pemrograman_mobile/screens/expense_screen.dart';
 import '../services/auth_service.dart';
 import 'category_screen.dart';
 import 'statistics_screen.dart';
 import 'login_screen.dart';
-import 'expense_list_screen.dart';
->>>>>>> 2b127b3c0acd27fcccc51bf6af13f2665870d3d9
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  HomeScreen({super.key});
+  const HomeScreen({super.key});
 
   // ✅ bikin instance di sini (tidak bisa pakai const)
-  final ExpenseManager manager = ExpenseManager();
 
   @override
   Widget build(BuildContext context) {
@@ -46,10 +38,6 @@ class HomeScreen extends StatelessWidget {
                 }
               }
             },
-<<<<<<< HEAD
-            icon: const Icon(Icons.logout),
-=======
->>>>>>> 2b127b3c0acd27fcccc51bf6af13f2665870d3d9
           ),
         ],
       ),
@@ -58,8 +46,6 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-<<<<<<< HEAD
-=======
             // 👇 sapaan dinamis
             Text(
               'Hai, ${currentUser?.fullname ?? 'Pengguna'} 👋',
@@ -71,7 +57,6 @@ class HomeScreen extends StatelessWidget {
               style: TextStyle(color: Colors.black54),
             ),
             const SizedBox(height: 24),
->>>>>>> 2b127b3c0acd27fcccc51bf6af13f2665870d3d9
             const Text(
               'Dashboard',
               style: TextStyle(
@@ -80,11 +65,7 @@ class HomeScreen extends StatelessWidget {
                 color: Colors.blue,
               ),
             ),
-<<<<<<< HEAD
-            const SizedBox(height: 20),
-=======
             const SizedBox(height: 16),
->>>>>>> 2b127b3c0acd27fcccc51bf6af13f2665870d3d9
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
@@ -92,53 +73,11 @@ class HomeScreen extends StatelessWidget {
                 mainAxisSpacing: 16,
                 children: [
                   _buildDashboardCard(
-<<<<<<< HEAD
-                    'Pengeluaran Advanced',
-                    Icons.attach_money,
-                    Colors.green,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  const AdvancedExpenseListScreen(), // ✅ tanpa manager
-                        ),
-                      );
-                    },
-                  ),
-                  _buildDashboardCard(
-                    'Pengeluaran Biasa',
-                    Icons.attach_money,
-                    Colors.green,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoopingExamplesScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildDashboardCard('Profil', Icons.person, Colors.blue, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ProfileScreen(),
-                      ),
-                    );
-                  }),
-                  _buildDashboardCard(
-                    'Pesan',
-                    Icons.message,
-                    Colors.orange,
-                    null,
-=======
                     context,
                     title: 'Pengeluaran',
                     icon: Icons.account_balance_wallet_outlined,
                     color: Colors.green,
-                    onTap: () => _navigate(context, const ExpenseListScreen()),
+                    onTap: () => _navigate(context, ExpenseScreen()),
                   ),
                   _buildDashboardCard(
                     context,
@@ -146,7 +85,6 @@ class HomeScreen extends StatelessWidget {
                     icon: Icons.bar_chart_rounded,
                     color: const Color.fromARGB(255, 0, 204, 255),
                     onTap: () => _navigate(context, const StatisticsScreen()),
->>>>>>> 2b127b3c0acd27fcccc51bf6af13f2665870d3d9
                   ),
                   _buildDashboardCard(
                     context,
@@ -194,34 +132,6 @@ class HomeScreen extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     return Card(
-<<<<<<< HEAD
-      elevation: 4,
-      child: Builder(
-        builder:
-            (context) => InkWell(
-              onTap:
-                  onTap ??
-                  () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Fitur $title segera hadir!')),
-                    );
-                  },
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icon, size: 48, color: color),
-                    const SizedBox(height: 12),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-=======
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
@@ -243,7 +153,6 @@ class HomeScreen extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
->>>>>>> 2b127b3c0acd27fcccc51bf6af13f2665870d3d9
                 ),
               ),
             ],

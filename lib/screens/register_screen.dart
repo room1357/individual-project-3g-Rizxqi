@@ -56,34 +56,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         backgroundColor: Colors.blue,
       ),
       body: Padding(
-<<<<<<< HEAD
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Form fields...
-            
-            // Tombol register
-            ElevatedButton(
-              onPressed: () {
-                // Navigasi ke HomeScreen dengan pushReplacement
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) =>  HomeScreen()),
-                );
-              },
-              child: Text('DAFTAR'),
-            ),
-            
-            // Link kembali ke login
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Kembali ke LoginScreen
-              },
-              child: Text('Sudah punya akun? Masuk'),
-            ),
-          ],
-=======
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
@@ -173,7 +145,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ],
           ),
->>>>>>> 2b127b3c0acd27fcccc51bf6af13f2665870d3d9
         ),
       ),
     );
